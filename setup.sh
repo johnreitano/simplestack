@@ -2,20 +2,16 @@
 
 # setting up routes
 
-APP_NAME=$1
-
 # brew list redis || brew install redis
 # brew services restart redis
 
+APP_NAME=$1
 rails new -m template.rb $APP_NAME --webpack --skip-sprockets --skip-bundle
+# rails new foo --skip-spring --skip-sprockets -m template.rb $APP_NAME
+
 cd $APP_NAME
 
-sed -i'' "N;N;N;s/^# Windows does not include zoneinfo.*\n//" Gemfile
-
-bundle remove tzinfo-data
-
 bundle add nested_scaffold redis bootstrap font-awesome-rails
-
 bundle exec rails g scaffold TodoList title
 bundle exec rails g nested_scaffold TodoList/TodoItem description:text completed:boolean completed_at:datetime todo_list:references
 rm -f app/assets/stylesheets/scaffolds.scss
