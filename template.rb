@@ -1,24 +1,6 @@
-require 'byebug'
-
-# TODO: 
-
-# get round-trip sr working
-# add authentication
-# add docker dev
-# add heroku
-# add docker-heroku
-# add notes on using aws
-# update readme
-# write short blog post - manifesto
-# write follow-up with simple-stack
-
 def installing_on_windows?
   require 'rbconfig'
   RbConfig::CONFIG['host_os'].to_s.match?(/mswin|msys|mingw|cygwin|bccwin|wince|emc/)
-end
-
-def add_rubocop_config
-  copy_file 'rubocop.yml', '.rubocop.yml'
 end
 
 def add_gems
@@ -39,7 +21,7 @@ end
 
 def scaffold_todo_item
   # run 'bundle exec rails generate scaffold TodoItem description:text completed_at:datetime'
-  run 'bundle exec rails generate model TodoItem description:text completed_at:datetime --no-jbuilder'
+  generate :model, 'TodoItem description:text completed_at:datetime --no-jbuilder'
   remove_file "app/models/todo_item.rb"
   create_file "app/models/todo_item.rb", <<-DONE
 class TodoItem < ApplicationRecord
@@ -89,7 +71,7 @@ class TodoItem < ApplicationRecord
 end
 DONE
   
-  run 'bundle exec rails generate scaffold TodoItem --no-stylesheets --skip-template-engine'
+  generate :scaffold, 'TodoItem --no-stylesheets --skip-template-engine'
   remove_file "app/controllers/todo_items_controller.rb"
   create_file "app/controllers/todo_items_controller.rb", <<-DONE
 class TodoItemsController < ApplicationController
@@ -177,7 +159,7 @@ create_file "app/views/todo_items/index.html.erb", <<-DONE
             <em><%= todo_item.description %></em>
           </span>
           <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#toggle', id: todo_item.id } do %>
-            <i class="fas <%= todo_item.completed? ? 'fa-check-square' : 'fa-square' %>"></i>
+            <%= render partial: 'todo_items/completed_icon', locals: { todo_item: todo_item } %>
           <% end %>
         </div>
       </li>
@@ -185,6 +167,13 @@ create_file "app/views/todo_items/index.html.erb", <<-DONE
   </ul>
 </div>
 DONE
+
+create_file "app/views/todo_items/_completed_icon.html.erb", <<-DONE
+<span id="icon-wrapper">
+  <i class="fas <%= todo_item.completed? ? 'fa-check-square' : 'fa-square' %>"></i>
+</span>
+DONE
+
   route "root to: 'todo_items#index'"
   route "resources :todo_items"
 end
@@ -230,35 +219,6 @@ def add_scss_resources
 DONE
 end
 
-def add_sidekiq_config
-  insert_into_file "config/routes.rb", "require 'sidekiq/web'\n\n", before: "Rails.application.routes.draw do"
-  code = <<-DONE
-  mount Sidekiq::Web => '/sidekiq'
-
-  DONE
-  insert_into_file "config/routes.rb", "#{code}\n", after: "Rails.application.routes.draw do\n"
-  environment "config.active_job.queue_adapter = :sidekiq"
-end
-
-def update_miscellaneous_config_files
-  environment "config.cache_store = :redis_cache_store, { driver: :hiredis, url: ENV.fetch('REDIS_URL') }", env: 'production'
-  
-  code = <<-DONE
-  config.session_store :redis_session_store, {
-    key: Rails.application.credentials.app_session_key,
-    serializer: :json,
-    redis: {
-      expire_after: 1.year,
-      ttl: 1.year,
-      key_prefix: 'app:session:',
-      url: ENV.fetch('REDIS_URL')
-    }    
-  DONE
-  environment code, env: 'production'
-
-  gsub_file 'config/cable.yml', /development:\n *adapter: async/, "development:\n  adapter: <%= ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' } %>"
-end
-
 def update_application_layout
   gsub_file 'app/views/layouts/application.html.erb', /_link_tag/, '_pack_tag' 
   gsub_file 'app/views/layouts/application.html.erb', %r{ *<body .*> *(\n.*)* *</body>}, <<-DONE
@@ -278,8 +238,9 @@ def update_application_layout
 end
 
 def install_and_configure_stimulus
+  run 'rails dev:cache'
   rails_command 'stimulus_reflex:install'
-  rails_command 'generate stimulus_reflex TodoItem toggle'  
+  generate :stimulus_reflex, 'TodoItem toggle'  
   gsub_file 'app/reflexes/todo_item_reflex.rb', %r{def toggle\n *end}, <<-'DONE'
   rescue_from Exception do |e|
     cable_ready.console_log(message: "got error: #{e.message}").broadcast
@@ -289,7 +250,6 @@ def install_and_configure_stimulus
   def toggle
     todo_item = TodoItem.find(element.dataset.id)
     todo_item.update(completed_at: todo_item.completed? ? nil : Time.now)
-    # cable_ready.console_log(message: 'success!').broadcast
   end
 DONE
 end
@@ -302,23 +262,53 @@ def install_node_packages
   run 'yarn add bootstrap jquery popper.js npm install @fortawesome/fontawesome-free stimulus_reflex@3.3.0'
 end
 
-def run_after_bundle_items
-  run 'rails dev:cache'
+def configure_action_cable
+  gsub_file 'config/cable.yml', /development:\n *adapter: async/, "development:\n  adapter: <%= ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' } %>"
+end
+
+def configure_redis_cache
+  environment "config.cache_store = :redis_cache_store, { driver: :hiredis, url: ENV.fetch('REDIS_URL') }", env: 'production'
+  
+  code = <<-DONE
+  config.session_store :redis_session_store, {
+    key: Rails.application.credentials.app_session_key,
+    serializer: :json,
+    redis: {
+      expire_after: 1.year,
+      ttl: 1.year,
+      key_prefix: 'app:session:',
+      url: ENV.fetch('REDIS_URL')
+    }    
+  DONE
+  environment code, env: 'production'
+end
+
+def configure_rubocop
+  copy_file 'rubocop.yml', '.rubocop.yml'
+end
+
+def configure_sidekiq
+  insert_into_file "config/routes.rb", "require 'sidekiq/web'\n\n", before: "Rails.application.routes.draw do"
+  code = <<-DONE
+  mount Sidekiq::Web => '/sidekiq'
+
+  DONE
+  insert_into_file "config/routes.rb", "#{code}\n", after: "Rails.application.routes.draw do\n"
+  environment "config.active_job.queue_adapter = :sidekiq"
+end
+
+add_gems
+run 'bundle install'
+after_bundle do
   install_node_packages
   scaffold_todo_item
   install_and_configure_stimulus
   migrate_db
   update_javascript_files
   add_scss_resources
-  add_sidekiq_config
   update_application_layout
-  update_miscellaneous_config_files
-  add_rubocop_config  
-end
-
-source_paths.unshift(File.dirname(__FILE__)) # only needed if we want to override app generator templates ???
-add_gems
-run 'bundle install'
-after_bundle do
-  run_after_bundle_items  
+  configure_action_cable
+  configure_redis_cache
+  configure_rubocop  
+  configure_sidekiq
 end
