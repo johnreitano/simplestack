@@ -1,17 +1,19 @@
-# Small Stack
+# Simple Stack
 
-Small stack is a truly full-stack framework for creating web apps at hyper-speed.
+Simple Stack is a full-stack framework for creating web apps at hyper-speed. It is based on
+Ruby on Rails and Stimulus Reflex.
 
 # Quick start
 
-* Make sure Docker Desktop is installed and both docker the docker-compose are in your path
-    * See xxx
-* make sure GNU make is installed and is in in your PATH:
-    * brew install make
-    * echo "export PATH=$($(brew --prefix make)/libexec/gnubin):$PATH" >> ~/.zshrc
-* git clone https://xxx  && cd small-stack
-* make setup
-* Enjoy!
+```
+    git clone https://github.com/johnreitano/simple-stack.git
+    cd simple-stack
+    ./simple-stack.sh /path/to/my-project
+    cd /path/to/my-project
+    rails server -p
+    open http://localhost:3000
+```
+* 
 
 # Primary Components
     * Front end
@@ -20,15 +22,13 @@ Small stack is a truly full-stack framework for creating web apps at hyper-speed
         * Bootstrap
         * ERB
         * Turbolinks
-        * a little Javascript
+        * StimulusJS (via Stimulus Reflex)
     * Backend
         * Ruby on Rails
         * Highlighted gems
-            * ActiveRecord
-            * ActionCable
             * Stimulus Reflex
+            * Devise
             * Pundit
-            * Activeadmin?
             * Sidekiq
         * Elasticsearch
         * Postgres
@@ -37,7 +37,7 @@ Small stack is a truly full-stack framework for creating web apps at hyper-speed
         * Heroku
         * Docker
     * Devtools
-        * Minitest/rspec?
+        * Minitest
         * Rubocop        
         * VS Code + editor plugins
         * Git
