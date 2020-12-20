@@ -143,11 +143,11 @@ create_file "app/views/todo_items/index.html.erb", <<-DONE
   <div class="progress mb-4">
     <div class="progress-bar bg-info" role="progressbar" style="width: <%= TodoItem.percent_complete %>%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
   </div>
-  <%= form_for([@todo_item]) do |f| %>
+  <%= form_for([@todo_item], data: { reflex: 'click->TodoItem#create' }) do |f| %>
     <div class="input-group mb-4">
       <%= f.text_field :description, class: "form-control", placeholder: "Add a todo item" %>
       <div class="input-group-append">
-        <%= f.submit "Add", class: "btn btn-primary input-group-btn" %>
+        <%= link_to "Add", "#", class: 'btn btn-primary input-group-btn' %>
       </div>
     </div>
   <% end %>
@@ -158,7 +158,7 @@ create_file "app/views/todo_items/index.html.erb", <<-DONE
           <span>
             <em><%= todo_item.description %></em>
           </span>
-          <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#toggle', id: todo_item.id } do %>
+          <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#toggle_completed', id: todo_item.id } do %>
             <%= render partial: 'todo_items/completed_icon', locals: { todo_item: todo_item } %>
           <% end %>
         </div>
@@ -240,18 +240,53 @@ end
 def install_and_configure_stimulus
   run 'rails dev:cache'
   rails_command 'stimulus_reflex:install'
-  generate :stimulus_reflex, 'TodoItem toggle'  
-  gsub_file 'app/reflexes/todo_item_reflex.rb', %r{def toggle\n *end}, <<-'DONE'
-  rescue_from Exception do |e|
-    cable_ready.console_log(message: "got error: #{e.message}").broadcast
-    morph(:nothing)
-  end
+  generate :stimulus_reflex, 'TodoItem create toggle_completed'
+  update_todo_item_reflex_rb
+  update_application_controller_js
+end
 
-  def toggle
-    todo_item = TodoItem.find(element.dataset.id)
-    todo_item.update(completed_at: todo_item.completed? ? nil : Time.now)
+def update_application_reflex_rb
+  insert_into_file "app/reflexes/application_reflex.rb", "  delegate :render, to: ApplicationController\n", before: "end"
+end
+
+def update_todo_item_reflex_rb
+  code = <<'DONE'
+  rescue_from Exception do |e|
+    raise e
+    morph :nothing
   end
 DONE
+  insert_into_file "app/reflexes/todo_item_reflex.rb", "#{code}\n", before: "def create"
+
+  code = <<-'DONE'
+  todo_item_params = params.require(:todo_item).permit(:id, :description)
+  todo_item = TodoItem.create!(todo_item_params)
+  html = render(partial: 'todo_items/completed_icon', locals: { todo_item: todo_item, source: 'todo_item_reflex.rb' })
+  morph "#icon-wrapper-#{todo_item.id}", html
+DONE
+  insert_into_file "app/reflexes/todo_item_reflex.rb", "#{code}\n", after: "def create\n"
+
+  code = <<-'DONE'
+  todo_item = TodoItem.find(element.dataset.id)
+  todo_item.update(completed_at: todo_item.completed? ? nil : Time.now)
+  html = render(partial: 'todo_items/completed_icon', locals: { todo_item: todo_item, source: 'todo_item_reflex.rb' })
+  morph "#icon-wrapper-#{todo_item.id}", html
+DONE
+  insert_into_file "app/reflexes/todo_item_reflex.rb", "#{code}\n", after: "def toggle_completed\n"
+end
+
+def update_application_controller_js
+  code = <<-'DONE'
+`    this.startTime = performance.now()
+  DONE
+`  insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /beforeReflex.*\n/
+
+  code = <<-'DONE'
+  this.endTime = performance.now()
+  this.elapsedTime = this.endTime - this.startTime
+  console.log('elapsedTime=', this.elapsedTime)
+DONE
+  insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /afterReflex.*\n/
 end
 
 def migrate_db

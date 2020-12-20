@@ -8,7 +8,7 @@ Ruby on Rails and Stimulus Reflex.
 ```
     git clone https://github.com/johnreitano/simple-stack.git
     cd simple-stack
-    ./simple-stack.sh /path/to/my-project
+    ./simple-stack.sh ~/my-project
     cd /path/to/my-project
     rails server -p
     open http://localhost:3000
