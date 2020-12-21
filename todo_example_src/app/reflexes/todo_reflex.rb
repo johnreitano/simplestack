@@ -45,6 +45,8 @@ class TodoReflex < ApplicationReflex
 
   def postpone
     @todo_list.postpone!
+    html = render(partial: 'todo_items/deadline', locals: { todo_list: @todo_list })
+    morph "#deadline-wrapper", html
   end
 
   private

@@ -3,20 +3,24 @@ def installing_on_windows?
   RbConfig::CONFIG['host_os'].to_s.match?(/mswin|msys|mingw|cygwin|bccwin|wince|emc/)
 end
 
-def add_gems
+def update_gems
+  # get rid of annoying tzinfo-data warning when not installing on windows
+  gsub_file 'Gemfile', /.*Windows.*\n.*tzinfo.*\n *\n/, '' unless installing_on_windows?
+
+  # remove sqlite3
+  gsub_file 'Gemfile', /.*gem 'sqlite3'.*\n/, ''
+
   gem 'redis'
   gem 'hiredis'
   gem 'bootstrap'
   gem 'font-awesome-rails'
   gem 'stimulus_reflex', '3.3.0'
   gem 'sidekiq', '~> 6.0', '>= 6.0.3'
+  gem 'pg'
 
   gem_group :development, :test do
     gem 'rubocop', require: false
   end
-
-  # get rid of annoying tzinfo-data warning when not installing on windows
-  gsub_file 'Gemfile', %r{.*Windows.*\n.*tzinfo.*\n *\n}, '' unless installing_on_windows?
 end
 
 def add_home_page
@@ -110,12 +114,13 @@ def install_and_configure_stimulus
   code = <<-'DONE'
     this.endTime = performance.now()
     this.elapsedTime = this.endTime - this.startTime
-    console.log('elapsedTime=', this.elapsedTime)
+    console.log('round-trip time for reflex: ', this.elapsedTime)
   DONE
   insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /afterReflex.*\n/
 end
 
-def migrate_db
+def create_and_migrate_db
+  rails_command 'db:create'
   rails_command 'db:migrate'
 end
 
@@ -158,8 +163,7 @@ def configure_sidekiq
   insert_into_file "config/routes.rb", "#{code}\n", after: "Rails.application.routes.draw do\n"
   environment "config.active_job.queue_adapter = :sidekiq"
 end
-
-add_gems
+update_gems
 run 'bundle install'
 after_bundle do
   install_node_packages
@@ -174,5 +178,5 @@ after_bundle do
   configure_redis_cache
   configure_rubocop  
   configure_sidekiq
-  migrate_db
+  create_and_migrate_db
 end

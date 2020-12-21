@@ -7,10 +7,9 @@
         </h5>
         <p class="text-secondary m-0"><%= list_completed_count %>/<%= list_size %> Completed</p>
         <p class="text-secondary m-0">
-          <span id="deadline">
-            Deadline: <%= @todo_list.deadline.to_s(:long) %>
-            <%= link_to "Postpone", "#", class: 'btn btn-primary', data: { reflex: 'click->Todo#postpone' } %>
-          </span>
+          <div id="deadline-wrapper">
+            <%= render partial: 'todo_items/deadline', locals: { todo_list: @todo_list } %>
+          </div>
         </p>
       </div>
     </div>
@@ -24,7 +23,7 @@
     <div class="input-group mb-4">
       <%= f.text_field :description, class: 'form-control', placeholder: 'Enter a todo item', id: 'add-todo-item-description' %>
       <div class="input-group-append">
-        <%= f.submit 'Add', class: 'btn btn-primary input-group-btn', id: 'add-todo-item-description', disabled: true %>
+        <%= f.submit 'Add', class: 'btn btn-primary input-group-btn', id: 'add-todo-item-submit', disabled: true %>
       </div>
     </div>
   <% end %>

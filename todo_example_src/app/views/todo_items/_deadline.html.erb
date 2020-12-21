@@ -1,0 +1,4 @@
+<span id="deadline">
+    Deadline: <%= todo_list.deadline.to_s(:long) %>
+    <%= link_to "Postpone", "#", class: 'btn btn-primary', data: { reflex: 'click->Todo#postpone' } %>
+</span>
