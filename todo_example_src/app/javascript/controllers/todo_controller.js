@@ -1,6 +1,6 @@
 import ApplicationController from './application_controller'
 
-/* This is the custom StimulusReflex controller for the TodoItem Reflex.
+/* This is the custom StimulusReflex controller for the Todo Reflex.
  * Learn more at: https://docs.stimulusreflex.com
  */
 export default class extends ApplicationController {
@@ -29,18 +29,18 @@ export default class extends ApplicationController {
    *
    * Important:
    * Make sure to add data-controller="todo-item" to your markup alongside
-   * data-reflex="TodoItem#dance" for the lifecycle methods to fire properly.
+   * data-reflex="Todo#dance" for the lifecycle methods to fire properly.
    *
    * Example:
    *
-   *   <a href="#" data-reflex="click->TodoItem#dance" data-controller="todo-item">Dance!</a>
+   *   <a href="#" data-reflex="click->Todo#dance" data-controller="todo-item">Dance!</a>
    *
    * Arguments:
    *
    *   element - the element that triggered the reflex
    *             may be different than the Stimulus controller's this.element
    *
-   *   reflex - the name of the reflex e.g. "TodoItem#dance"
+   *   reflex - the name of the reflex e.g. "Todo#dance"
    *
    *   error/noop - the error message (for reflexError), otherwise null
    *
@@ -52,7 +52,7 @@ export default class extends ApplicationController {
   // }
 
   createSuccess(element, reflex, noop, reflexId) {
-    $('#new-item-description').val('');
+    $('#add-todo-item-description').val('');
   }
 
   // createError(element, reflex, error, reflexId) {
@@ -87,3 +87,11 @@ export default class extends ApplicationController {
   //   console.log("after toggle_completed", element, reflex, reflexId)
   // }
 }
+
+$(document).on('turbolinks:load', function () {
+  $('#add-todo-item-submit').attr('disabled', true);
+  $('#add-todo-item-description').keyup(function () {
+    let hasText = /\S/.test($(this).val())
+    $('#add-todo-item-submit').attr('disabled', !hasText);
+  })
+})

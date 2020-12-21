@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class TodoItemReflex < ApplicationReflex
+class TodoReflex < ApplicationReflex
   # Add Reflex methods in this file.
   #
   # All Reflex instances expose the following properties:

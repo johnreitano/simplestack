@@ -9,7 +9,7 @@
         <p class="text-secondary m-0">
           <span id="deadline">
             Deadline: <%= @todo_list.deadline.to_s(:long) %>
-            <%= link_to "Postpone", "#", class: 'btn btn-primary', data: { reflex: 'click->TodoItem#postpone' } %>
+            <%= link_to "Postpone", "#", class: 'btn btn-primary', data: { reflex: 'click->Todo#postpone' } %>
           </span>
         </p>
       </div>
@@ -20,11 +20,11 @@
   <div class="progress mb-4">
     <div class="progress-bar bg-info" role="progressbar" style="width: <%= list_completion_percent %>%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
   </div>
- <%= form_for([@todo_item], data: { reflex: 'submit->TodoItem#create' }) do |f| %>
+ <%= form_for([@todo_item], data: { reflex: 'submit->Todo#create' }) do |f| %>
     <div class="input-group mb-4">
-      <%= f.text_field :description, class: 'form-control', placeholder: 'Enter a todo item', id: 'new-item-description' %>
+      <%= f.text_field :description, class: 'form-control', placeholder: 'Enter a todo item', id: 'add-todo-item-description' %>
       <div class="input-group-append">
-        <%= f.submit 'Add', class: 'btn btn-primary input-group-btn' %>
+        <%= f.submit 'Add', class: 'btn btn-primary input-group-btn', id: 'add-todo-item-description', disabled: true %>
       </div>
     </div>
   <% end %>
@@ -36,10 +36,10 @@
             <em><%= todo_item.description %></em>
           </span>
           <span>
-            <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#toggle_completed', id: todo_item.id } do %>
+            <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->Todo#toggle_completed', id: todo_item.id } do %>
               <%= render partial: 'todo_items/complete_icon', locals: { todo_item: todo_item } %>
             <% end %>
-            <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#destroy', id: todo_item.id } do %>
+            <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->Todo#destroy', id: todo_item.id } do %>
               <%= render partial: 'todo_items/destroy_icon', locals: { todo_item: todo_item } %>
             <% end %>
           </span>
