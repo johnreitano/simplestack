@@ -1,0 +1,50 @@
+<div class="card-header d-flex justify-content-between">
+  <div class="row">
+    <div class="col-10 d-flex justify-content-between">
+      <div>
+        <h5 class="m-0">
+          <b>Todos</b>
+        </h5>
+        <p class="text-secondary m-0"><%= list_completed_count %>/<%= list_size %> Completed</p>
+        <p class="text-secondary m-0">
+          <span id="deadline">
+            Deadline: <%= @todo_list.deadline.to_s(:long) %>
+            <%= link_to "Postpone", "#", class: 'btn btn-primary', data: { reflex: 'click->TodoItem#postpone' } %>
+          </span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card-body">
+  <div class="progress mb-4">
+    <div class="progress-bar bg-info" role="progressbar" style="width: <%= list_completion_percent %>%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+ <%= form_for([@todo_item], data: { reflex: 'submit->TodoItem#create' }) do |f| %>
+    <div class="input-group mb-4">
+      <%= f.text_field :description, class: 'form-control', placeholder: 'Enter a todo item', id: 'new-item-description' %>
+      <div class="input-group-append">
+        <%= f.submit 'Add', class: 'btn btn-primary input-group-btn' %>
+      </div>
+    </div>
+  <% end %>
+  <ul class="list-group">
+    <% @todo_items.each do |todo_item| %>
+      <li class="list-group-item <%= 'bg-light' if todo_item.completed? %>%">
+        <div class="d-flex justify-content-between">
+          <span>
+            <em><%= todo_item.description %></em>
+          </span>
+          <span>
+            <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#toggle_completed', id: todo_item.id } do %>
+              <%= render partial: 'todo_items/complete_icon', locals: { todo_item: todo_item } %>
+            <% end %>
+            <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#destroy', id: todo_item.id } do %>
+              <%= render partial: 'todo_items/destroy_icon', locals: { todo_item: todo_item } %>
+            <% end %>
+          </span>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+</div>

@@ -19,209 +19,69 @@ def add_gems
   gsub_file 'Gemfile', %r{.*Windows.*\n.*tzinfo.*\n *\n}, '' unless installing_on_windows?
 end
 
-def scaffold_todo_item
-  # run 'bundle exec rails generate scaffold TodoItem description:text completed_at:datetime'
-  generate :model, 'TodoItem description:text completed_at:datetime --no-jbuilder'
-  remove_file "app/models/todo_item.rb"
-  create_file "app/models/todo_item.rb", <<-DONE
-class TodoItem < ApplicationRecord
-  scope :completed, -> { where.not(completed_at: nil) }
+def add_home_page
+  generate 'controller pages home --no-stylesheets --no-helper'
+  route "root to: 'pages#home'"
+  remove_file 'app/views/pages/home.html.erb'
+  create_file 'app/views/pages/home.html.erb', <<-'DONE'
+  <h1>Welcome to <%= Rails.application.class.parent_name %></h1>
 
-  def self.percent_complete
-    if total_items_count.zero?
-      0.0
-    else
-      (100 * completed_items_count.to_f / total_items_count).round(1)
-    end
-  end
-
-  def self.total_items_count
-    TodoItem.count
-  end
-
-  def self.completed_items_count
-    TodoItem.completed.count
-  end
-
-  def self.list_status
-    case percent_complete.to_i
-    when 0
-      'Not started'
-    when 100
-      'Completed'
-    else
-      'In Progress'
-    end
-  end
-
-  def self.badge_color
-    case percent_complete.to_i
-    when 0
-      'dark'
-    when 100
-      'info'
-    else
-      'primary'
-    end
-  end
-
-  def completed?
-    completed_at.present?
-  end
+  <p>This application was built using <%= link_to 'Simple Stack', 'https://github.com/johnreitano/simple-stack' %>.</p>
+  <p>Here is <%= link_to "an example of Simple Stack in action", todo_items_path %>.
+  DONE
 end
-DONE
-  
-  generate :scaffold, 'TodoItem --no-stylesheets --skip-template-engine'
-  remove_file "app/controllers/todo_items_controller.rb"
-  create_file "app/controllers/todo_items_controller.rb", <<-DONE
-class TodoItemsController < ApplicationController
-  before_action :set_todo_item, only: [:update, :destroy]
 
-  def index
-    prepare_variables_and_render_index_template
-  end
-
-  def create
-    @todo_item = TodoItem.new(todo_item_params)
-    if @todo_item.save
-      # render :nothing
-      redirect_to todo_items_path, notice: 'Todo item was successfully created.'
-    else
-      prepare_variables_and_render_index_template
-    end
-  end
-
-  def update
-    if @todo_item.update(todo_item_params)
-      redirect_to todo_items_path, notice: 'Todo item was successfully updated.'
-    else
-      render :edit
-    end
-  end
-
-  def destroy
-    @todo_item.destroy
-    redirect_to todo_items_path, notice: 'Todo item was successfully destroyed.'
-  end
-
-  private
-
-  # Use callbacks to share common setup or constraints between actions.
-  def set_todo_item
-    @todo_item = TodoItem.find(params[:id])
-  end
-
-  # Only allow a list of trusted parameters through.
-  def todo_item_params
-    params.require(:todo_item).permit(:description, :completed, :completed_at)
-  end
-
-  def prepare_variables_and_render_index_template
-    @todo_items = TodoItem.all
-    @todo_item = TodoItem.new
-    render :index
-  end
-end
-DONE
-
-run "rm -f app/views/todo_items/*"
-create_file "app/views/todo_items/index.html.erb", <<-DONE
-<div class="card-header d-flex justify-content-between">
-  <div class="row">
-    <div class="col-10 d-flex justify-content-between">
-      <div>
-        <h5 class="m-0">
-          <b>Todos</b>
-          <span class="badge badge-<%= TodoItem.badge_color %>"><%= TodoItem.list_status %></span>
-        </h5>
-        <p class="text-secondary m-0"><%= TodoItem.percent_complete %>% (<%= TodoItem.completed_items_count %>/<%= TodoItem.total_items_count %> Todo Items)</p>
-      </div>
-    </div>
-  </div>
-</div>
-<div class="card-body">
-  <div class="progress mb-4">
-    <div class="progress-bar bg-info" role="progressbar" style="width: <%= TodoItem.percent_complete %>%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
-  </div>
-  <%= form_for([@todo_item], data: { reflex: 'click->TodoItem#create' }) do |f| %>
-    <div class="input-group mb-4">
-      <%= f.text_field :description, class: "form-control", placeholder: "Add a todo item" %>
-      <div class="input-group-append">
-        <%= link_to "Add", "#", class: 'btn btn-primary input-group-btn' %>
-      </div>
-    </div>
-  <% end %>
-  <ul class="list-group">
-    <% @todo_items.each do |todo_item| %>
-      <li class="list-group-item <%= 'bg-light' if todo_item.completed? %>%">
-        <div class="d-flex justify-content-between ">
-          <span>
-            <em><%= todo_item.description %></em>
-          </span>
-          <%= link_to "#", class: 'btn btn-info', data: { reflex: 'click->TodoItem#toggle_completed', id: todo_item.id } do %>
-            <%= render partial: 'todo_items/completed_icon', locals: { todo_item: todo_item } %>
-          <% end %>
-        </div>
-      </li>
-    <% end %>
-  </ul>
-</div>
-DONE
-
-create_file "app/views/todo_items/_completed_icon.html.erb", <<-DONE
-<span id="icon-wrapper">
-  <i class="fas <%= todo_item.completed? ? 'fa-check-square' : 'fa-square' %>"></i>
-</span>
-DONE
-
-  route "root to: 'todo_items#index'"
+def add_todo_example
+  puts "cp -R #{__dir__}/todo_example_src/* ./"
+  run "cp -R #{__dir__}/todo_example_src/* ./"
   route "resources :todo_items"
 end
 
-def update_javascript_files
-  code = <<-DONE
-
-const { ProvidePlugin } = require('webpack')
-environment.plugins.append('Provide',
-  new ProvidePlugin({
-    $: 'jquery',
-    jQuery: 'jquery',
-    Popper: ['popper.js', 'default']
-  })
-)
-DONE
-  insert_into_file 'config/webpack/environment.js', code, after: "const { environment } = require('@rails/webpacker')"
-  
-  create_file 'app/javascript/images/index.js', <<-DONE
-  const images = require.context('../images', true)
-  const imagePath = (name) => images(name, true)
+def update_javascript_resources
+  code = <<-DONE  
+  const { ProvidePlugin } = require('webpack')
+  environment.plugins.append('Provide',
+    new ProvidePlugin({
+      $: 'jquery',
+      jQuery: 'jquery',
+      Popper: ['popper.js', 'default']
+    })
+  )
   DONE
-
+  insert_into_file 'config/webpack/environment.js', code, after: "const { environment } = require('@rails/webpacker')\n"
+  
   remove_file 'app/javascript/packs/application.js'
   create_file 'app/javascript/packs/application.js', <<-DONE
-  import 'bootstrap';
-  require('bootstrap/scss/bootstrap.scss');
-  import "@fortawesome/fontawesome-free/js/all"
-  import '../scss/global.scss'
   require('@rails/ujs').start();
   require('turbolinks').start();
   require('@rails/activestorage').start();
-  require('controllers');
   require('channels');
-  require("images")
-  DONE
 
+  require('bootstrap');
+  require('controllers');
+  require('@fortawesome/fontawesome-free/js/all') // TODO: move font-awesome to example step
+
+  require('../scss/global.scss') // TODO: make these two consistent
+  require('images') // TODO: make these two consistent, one is wrong
+  DONE
 end
 
 def add_scss_resources
-  create_file 'app/javascript/scss/global.scss', <<DONE
-// @import '~bootstrap/scss/bootstrap'; // TODO: cut this?
-DONE
+  create_file 'app/javascript/scss/global.scss', <<-'DONE'
+    @import '~bootstrap/scss/bootstrap';
+  DONE
+end
+
+def add_image_resources
+  create_file 'app/javascript/images/index.js', <<-'DONE'
+  const images = require.context('../images', true)
+  const imagePath = (name) => images(name, true)
+  DONE
 end
 
 def update_application_layout
   gsub_file 'app/views/layouts/application.html.erb', /_link_tag/, '_pack_tag' 
-  gsub_file 'app/views/layouts/application.html.erb', %r{ *<body .*> *(\n.*)* *</body>}, <<-DONE
+  gsub_file 'app/views/layouts/application.html.erb', / *<body .*> *(\n.*)* *<\/body>/, <<-'DONE'
     <body class="bg-light">
       <div class="container">
         <div class="row">
@@ -235,57 +95,23 @@ def update_application_layout
       </div>
     </body>
   DONE
+  run 'cat app/views/layouts/application.html.erb'
 end
 
 def install_and_configure_stimulus
   run 'rails dev:cache'
   rails_command 'stimulus_reflex:install'
-  generate :stimulus_reflex, 'TodoItem create toggle_completed'
-  update_todo_item_reflex_rb
-  update_application_controller_js
-end
-
-def update_application_reflex_rb
   insert_into_file "app/reflexes/application_reflex.rb", "  delegate :render, to: ApplicationController\n", before: "end"
-end
-
-def update_todo_item_reflex_rb
-  code = <<'DONE'
-  rescue_from Exception do |e|
-    raise e
-    morph :nothing
-  end
-DONE
-  insert_into_file "app/reflexes/todo_item_reflex.rb", "#{code}\n", before: "def create"
-
   code = <<-'DONE'
-  todo_item_params = params.require(:todo_item).permit(:id, :description)
-  todo_item = TodoItem.create!(todo_item_params)
-  html = render(partial: 'todo_items/completed_icon', locals: { todo_item: todo_item, source: 'todo_item_reflex.rb' })
-  morph "#icon-wrapper-#{todo_item.id}", html
-DONE
-  insert_into_file "app/reflexes/todo_item_reflex.rb", "#{code}\n", after: "def create\n"
-
-  code = <<-'DONE'
-  todo_item = TodoItem.find(element.dataset.id)
-  todo_item.update(completed_at: todo_item.completed? ? nil : Time.now)
-  html = render(partial: 'todo_items/completed_icon', locals: { todo_item: todo_item, source: 'todo_item_reflex.rb' })
-  morph "#icon-wrapper-#{todo_item.id}", html
-DONE
-  insert_into_file "app/reflexes/todo_item_reflex.rb", "#{code}\n", after: "def toggle_completed\n"
-end
-
-def update_application_controller_js
-  code = <<-'DONE'
-`    this.startTime = performance.now()
+    this.startTime = performance.now()
   DONE
-`  insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /beforeReflex.*\n/
+  insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /beforeReflex.*\n/
 
   code = <<-'DONE'
-  this.endTime = performance.now()
-  this.elapsedTime = this.endTime - this.startTime
-  console.log('elapsedTime=', this.elapsedTime)
-DONE
+    this.endTime = performance.now()
+    this.elapsedTime = this.endTime - this.startTime
+    console.log('elapsedTime=', this.elapsedTime)
+  DONE
   insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /afterReflex.*\n/
 end
 
@@ -294,10 +120,11 @@ def migrate_db
 end
 
 def install_node_packages
-  run 'yarn add bootstrap jquery popper.js npm install @fortawesome/fontawesome-free stimulus_reflex@3.3.0'
+  run 'yarn add bootstrap jquery popper.js npm install @fortawesome/fontawesome-free stimulus_reflex@3.3.0' # TODO: move font-awesome to example step
 end
 
 def configure_action_cable
+  # TODO: check if this is still necessary
   gsub_file 'config/cable.yml', /development:\n *adapter: async/, "development:\n  adapter: <%= ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' } %>"
 end
 
@@ -319,7 +146,7 @@ def configure_redis_cache
 end
 
 def configure_rubocop
-  copy_file 'rubocop.yml', '.rubocop.yml'
+  copy_file "#{__dir__}/rubocop.yml", '.rubocop.yml'
 end
 
 def configure_sidekiq
@@ -336,14 +163,16 @@ add_gems
 run 'bundle install'
 after_bundle do
   install_node_packages
-  scaffold_todo_item
+  add_home_page
+  add_todo_example
   install_and_configure_stimulus
-  migrate_db
-  update_javascript_files
+  update_javascript_resources
   add_scss_resources
+  add_image_resources
   update_application_layout
   configure_action_cable
   configure_redis_cache
   configure_rubocop  
   configure_sidekiq
+  migrate_db
 end
