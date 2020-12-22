@@ -5,8 +5,8 @@ end
 
 def update_gems
   # get rid of annoying tzinfo-data warning when not installing on windows
-  gsub_file 'Gemfile', /.*Windows.*\n.*tzinfo.*\n *\n/, '' unless installing_on_windows?
-
+  gsub_file 'Gemfile', %r{.*Windows.*\n.*tzinfo.*\n *}, '' unless installing_on_windows?
+  
   # remove sqlite3
   gsub_file 'Gemfile', /.*gem 'sqlite3'.*\n/, ''
 
@@ -16,7 +16,6 @@ def update_gems
   gem 'font-awesome-rails'
   gem 'stimulus_reflex', '3.3.0'
   gem 'sidekiq', '~> 6.0', '>= 6.0.3'
-  gem 'pg'
 
   gem_group :development, :test do
     gem 'rubocop', require: false
@@ -28,7 +27,7 @@ def add_home_page
   route "root to: 'pages#home'"
   remove_file 'app/views/pages/home.html.erb'
   create_file 'app/views/pages/home.html.erb', <<-'DONE'
-  <h1>Welcome to <%= Rails.application.class.parent_name %></h1>
+  <h1>Welcome to <%= Rails.application.class.to_s.split('::').first %></h1>
 
   <p>This application was built using <%= link_to 'Simple Stack', 'https://github.com/johnreitano/simple-stack' %>.</p>
   <p>Here is <%= link_to "an example of Simple Stack in action", todo_items_path %>.
@@ -125,7 +124,7 @@ def create_and_migrate_db
 end
 
 def install_node_packages
-  run 'yarn add bootstrap jquery popper.js npm install @fortawesome/fontawesome-free stimulus_reflex@3.3.0' # TODO: move font-awesome to example step
+  run 'yarn add bootstrap jquery popper.js @fortawesome/fontawesome-free stimulus_reflex@3.3.0' # TODO: move font-awesome to example step
 end
 
 def configure_action_cable
@@ -163,6 +162,7 @@ def configure_sidekiq
   insert_into_file "config/routes.rb", "#{code}\n", after: "Rails.application.routes.draw do\n"
   environment "config.active_job.queue_adapter = :sidekiq"
 end
+
 update_gems
 run 'bundle install'
 after_bundle do
