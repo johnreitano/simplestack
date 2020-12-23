@@ -14,7 +14,6 @@ def update_gems
   gem 'hiredis'
   gem 'bootstrap'
   gem 'font-awesome-rails'
-  gem 'stimulus_reflex', '3.3.0'
   gem 'sidekiq', '~> 6.0', '>= 6.0.3'
 
   gem_group :development, :test do
@@ -84,12 +83,11 @@ end
 
 def update_application_layout
   gsub_file 'app/views/layouts/application.html.erb', /_link_tag/, '_pack_tag' 
-  gsub_file 'app/views/layouts/application.html.erb', / *<body .*> *(\n.*)* *<\/body>/, <<-'DONE'
+  gsub_file 'app/views/layouts/application.html.erb', / *<%= yield %> */, <<-'DONE'
     <body class="bg-light">
       <div class="container">
         <div class="row">
           <div class="col-md-10 col-lg-8 offset-md-1 offset-lg-2">
-            <p id="notice"><%= notice %></p>
             <div class="card mt-5">
               <%= yield %>
             </div>
@@ -98,11 +96,11 @@ def update_application_layout
       </div>
     </body>
   DONE
-  run 'cat app/views/layouts/application.html.erb'
 end
 
 def install_and_configure_stimulus
   run 'rails dev:cache'
+  run 'bundle add stimulus_reflex --version 3.4.0'
   rails_command 'stimulus_reflex:install'
   insert_into_file "app/reflexes/application_reflex.rb", "  delegate :render, to: ApplicationController\n", before: "end"
   code = <<-'DONE'
@@ -118,13 +116,12 @@ def install_and_configure_stimulus
   insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /afterReflex.*\n/
 end
 
-def create_and_migrate_db
-  rails_command 'db:create'
-  rails_command 'db:migrate'
+def reset_db
+  rails_command 'db:reset'
 end
 
 def install_node_packages
-  run 'yarn add bootstrap jquery popper.js @fortawesome/fontawesome-free stimulus_reflex@3.3.0' # TODO: move font-awesome to example step
+  run 'yarn add bootstrap jquery popper.js stimulus_reflex@3.4.0 @fortawesome/fontawesome-free' # TODO: move font-awesome to example step
 end
 
 def configure_action_cable
@@ -166,10 +163,10 @@ end
 update_gems
 run 'bundle install'
 after_bundle do
+  install_and_configure_stimulus_on_server
   install_node_packages
   add_home_page
   add_todo_example
-  install_and_configure_stimulus
   update_javascript_resources
   add_scss_resources
   add_image_resources
@@ -178,5 +175,5 @@ after_bundle do
   configure_redis_cache
   configure_rubocop  
   configure_sidekiq
-  create_and_migrate_db
+  reset_db
 end
