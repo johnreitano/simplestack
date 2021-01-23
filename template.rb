@@ -32,7 +32,7 @@ def installing_on_windows?
 end
 
 def update_gems
-  puts "Installing gems..."
+  say "Installing gems..."
 
   # get rid of annoying tzinfo-data warning when not installing on windows
   gsub_file 'Gemfile', %r{.*Windows.*\n.*tzinfo.*\n *}, '' unless installing_on_windows?
@@ -53,7 +53,7 @@ def update_gems
 end
 
 def add_home_page
-  puts "Adding home page..."
+  say "Adding home page..."
 
   generate 'controller pages home --no-stylesheets --no-helper'
   route "root to: 'pages#home'"
@@ -67,15 +67,15 @@ def add_home_page
 end
 
 def add_todo_example
-  puts "Adding Todo example..."
+  say "Adding Todo example..."
 
-  puts "cp -R #{__dir__}/todo_example_src/* ./"
+  say "cp -R #{__dir__}/todo_example_src/* ./"
   run "cp -R #{__dir__}/todo_example_src/* ./"
   route "resources :todo_items"
 end
 
 def update_javascript_resources
-  puts "Updating javascript resources..."
+  say "Updating javascript resources..."
 
   code = <<-DONE  
   const { ProvidePlugin } = require('webpack')
@@ -106,7 +106,7 @@ def update_javascript_resources
 end
 
 def add_scss_resources
-  puts "Adding javascript resources..."
+  say "Adding javascript resources..."
 
   create_file 'app/javascript/scss/global.scss', <<-'DONE'
     @import '~bootstrap/scss/bootstrap';
@@ -114,7 +114,7 @@ def add_scss_resources
 end
 
 def add_image_resources
-  puts "Adding image resources..."
+  say "Adding image resources..."
 
   create_file 'app/javascript/images/index.js', <<-'DONE'
   const images = require.context('../images', true)
@@ -123,7 +123,7 @@ def add_image_resources
 end
 
 def update_application_layout
-  puts "Updating application layout..."
+  say "Updating application layout..."
 
   gsub_file 'app/views/layouts/application.html.erb', /_link_tag/, '_pack_tag' 
   gsub_file 'app/views/layouts/application.html.erb', / *<%= yield %> */, <<-'DONE'
@@ -142,7 +142,7 @@ def update_application_layout
 end
 
 def install_and_configure_stimulus_on_server
-  puts "Installing and configuring Stimulus Reflex on server..."
+  say "Installing and configuring Stimulus Reflex on server..."
 
   run 'rails dev:cache'
   run 'bundle add stimulus_reflex --version 3.4.0'
@@ -162,26 +162,26 @@ def install_and_configure_stimulus_on_server
 end
 
 def init_db
-  puts "Initializing db..."
+  say "Initializing db..."
 
   rails_command 'db:create db:migrate db:seed'
 end
 
 def install_node_packages
-  puts "Installing node packages..."
+  say "Installing node packages..."
 
   run 'yarn add bootstrap jquery popper.js stimulus_reflex@3.4.0 @fortawesome/fontawesome-free' # TODO: move font-awesome to example step
 end
 
 def configure_action_cable
-  puts "Configuring action cable..."
+  say "Configuring action cable..."
 
   # TODO: check if this is still necessary
   gsub_file 'config/cable.yml', /development:\n *adapter: async/, "development:\n  adapter: <%= ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' } %>"
 end
 
 def configure_redis_cache
-  puts "Configuring Redis cache store and session store..."
+  say "Configuring Redis cache store and session store..."
 
   environment "config.cache_store = :redis_cache_store, { driver: :hiredis, url: ENV.fetch('REDIS_URL') }", env: 'production'
   
@@ -201,13 +201,13 @@ def configure_redis_cache
 end
 
 def configure_rubocop
-  puts "Configuring Rubocop..."
+  say "Configuring Rubocop..."
 
   copy_file "#{__dir__}/rubocop.yml", '.rubocop.yml'
 end
 
 def configure_sidekiq
-  puts "Configuring Sidekiq..."
+  say "Configuring Sidekiq..."
 
   insert_into_file "config/routes.rb", "require 'sidekiq/web'\n\n", before: "Rails.application.routes.draw do"
   code = <<-DONE
@@ -241,7 +241,7 @@ def create_local_git_changes
 end
 
 def create_github_repo
-  puts "Creating Github repo..."
+  say "Creating Github repo..."
 
   create_local_git_changes
   success = system "gh repo create #{@github_repo_name} --confirm --public"
@@ -250,7 +250,7 @@ def create_github_repo
   end
 
 def deploy_to_heroku
-  puts "Deploying to Heroku..."
+  say "Deploying to Heroku..."
 
   create_local_git_changes
   success = system "heroku create"
@@ -261,7 +261,7 @@ def deploy_to_heroku
   success = system "heroku addons:wait --app=#{heroku_app_name}" if success
   abort("Could not get status of Redis add-on in Heroku - quitting") unless success
   git push: 'heroku master'
-  puts "NOTE: To destroy this app, run: heroku apps:destroy --app=#{heroku_app_name}"
+  say "NOTE: To destroy this app, run: heroku apps:destroy --app=#{heroku_app_name}"
 end
 
 ask_questions
