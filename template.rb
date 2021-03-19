@@ -46,10 +46,15 @@ def update_gems
   gem 'bootstrap'
   gem 'font-awesome-rails'
   gem 'sidekiq', '~> 6.0', '>= 6.0.3'
+  gem 'hotwire-rails'
 
   gem_group :development, :test do
     gem 'rubocop', require: false
   end
+end
+
+def install_hotwire
+  rails_command 'hotwire:install'
 end
 
 def add_home_page
@@ -61,7 +66,7 @@ def add_home_page
   create_file 'app/views/pages/home.html.erb', <<-'DONE'
   <h1>Welcome to <%= Rails.application.class.to_s.split('::').first %></h1>
 
-  <p>This application was built using <%= link_to 'Simple Stack', 'https://github.com/johnreitano/simple-stack' %>.</p>
+  <p>This application was built using <%= link_to 'Simple Stack', 'https://github.com/johnreitano/simplestack' %>.</p>
   <p>Here is <%= link_to "an example of Simple Stack in action", todo_items_path %>.
   DONE
 end
@@ -95,13 +100,15 @@ def update_javascript_resources
   require('turbolinks').start();
   require('@rails/activestorage').start();
   require('channels');
-
   require('bootstrap');
   require('controllers');
   require('@fortawesome/fontawesome-free/js/all') // TODO: move font-awesome to example step
-
   require('../scss/global.scss') // TODO: make these two consistent
   require('images') // TODO: make these two consistent, one is wrong
+  DONE
+
+  create_file 'app/javascript/controllers/index.js', <<-'DONE'
+  const controllers = require.context('.', true, /_controller\.js$/)
   DONE
 end
 
@@ -141,26 +148,6 @@ def update_application_layout
   DONE
 end
 
-def install_and_configure_stimulus_on_server
-  say "Installing and configuring Stimulus Reflex on server..."
-
-  run 'rails dev:cache'
-  run 'bundle add stimulus_reflex --version 3.4.0'
-  rails_command 'stimulus_reflex:install'
-  insert_into_file "app/reflexes/application_reflex.rb", "  delegate :render, to: ApplicationController\n", before: "end"
-  code = <<-'DONE'
-    this.startTime = performance.now()
-  DONE
-  insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /beforeReflex.*\n/
-
-  code = <<-'DONE'
-    this.endTime = performance.now()
-    this.elapsedTime = this.endTime - this.startTime
-    console.log('round-trip time for reflex: ', this.elapsedTime)
-  DONE
-  insert_into_file "app/javascript/controllers/application_controller.js", "#{code}\n", after: /afterReflex.*\n/
-end
-
 def init_db
   say "Initializing db..."
 
@@ -170,15 +157,15 @@ end
 def install_node_packages
   say "Installing node packages..."
 
-  run 'yarn add bootstrap jquery popper.js stimulus_reflex@3.4.0 @fortawesome/fontawesome-free' # TODO: move font-awesome to example step
+  run 'yarn add bootstrap jquery popper.js @fortawesome/fontawesome-free' # TODO: move font-awesome to example step
 end
 
-def configure_action_cable
-  say "Configuring action cable..."
+# def configure_action_cable
+#   say "Configuring action cable..."
 
-  # TODO: check if this is still necessary
-  gsub_file 'config/cable.yml', /development:\n *adapter: async/, "development:\n  adapter: <%= ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' } %>"
-end
+#   # TODO: check if this is still necessary
+#   gsub_file 'config/cable.yml', /development:\n *adapter: async/, "development:\n  adapter: <%= ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' } %>"
+# end
 
 def configure_redis_cache
   say "Configuring Redis cache store and session store..."
@@ -268,7 +255,7 @@ ask_questions
 update_gems
 run 'bundle install'
 after_bundle do
-  install_and_configure_stimulus_on_server
+  install_hotwire
   install_node_packages
   add_home_page
   add_todo_example
@@ -276,7 +263,7 @@ after_bundle do
   add_scss_resources
   add_image_resources
   update_application_layout
-  configure_action_cable
+  # configure_action_cable
   configure_redis_cache
   configure_rubocop  
   configure_sidekiq

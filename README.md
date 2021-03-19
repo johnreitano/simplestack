@@ -4,15 +4,17 @@ Simple Stack is a full-stack framework for creating web apps at hyper-speed. It 
 Ruby on Rails and Stimulus Reflex.
 
 ## Local development
+
 ```
-    git clone https://github.com/johnreitano/simple-stack.git
-    cd simple-stack
-    ./simple-stack.sh /path/to/my-project
+    git clone https://github.com/johnreitano/simplestack.git
+    cd simplestack
+    ./simplestack.sh /path/to/my-project
     cd /path/to/my-project
     rails server -p
 ```
 
 ## Deploying to heroku
+
 ```
 brew tap heroku/brew && brew install heroku
 heroku login # follow prompts to login or sign up
@@ -20,6 +22,7 @@ TBD...
 ```
 
 # Primary Components
+
     * Front end
         * HTML/CSS
         * Flexbox
@@ -43,7 +46,7 @@ TBD...
     * Devtools/Miscelleanous
         * Docker & Docker Compose
         * Minitest
-        * Rubocop      
+        * Rubocop
 
 ## Contributing
 
@@ -52,4 +55,5 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## License
+
 [MIT](https://choosealicense.com/licenses/mit/)
