@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-set -x
-set -o
+set -e
+# set -x
 
 answered_yes() {
     echo -n "\n$1 [Yes] "

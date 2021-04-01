@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-set -x
-set -o
+set -e
+# set -x
 
 if [[ $1 = "" || ($1 = "new" && $2 = "") ]]; then
     echo "Usage: simplestack new <app_name>"
