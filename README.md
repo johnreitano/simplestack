@@ -1,16 +1,16 @@
 # Simple Stack
 
-Simple Stack is a full-stack framework for creating web apps at hyper-speed. It is based on
-Ruby on Rails and Stimulus Reflex.
+Simple Stack is an opinionated app generator and full-stack framework for creating web apps at hyper-speed. It is based on the idea that design simplicity should be first-class development goal.
 
 ## Local development
 
 ```
-    git clone https://github.com/johnreitano/simplestack.git
-    cd simplestack
-    ./simplestack.sh /path/to/my-project
-    cd /path/to/my-project
+    brew tap johnreitano/simplestack
+    brew install simplestack
+    simplestack new-project
+    cd new-project
     rails server -p
+    # then browse to http://localhost:3000
 ```
 
 ## Deploying to heroku
@@ -18,7 +18,7 @@ Ruby on Rails and Stimulus Reflex.
 ```
 brew tap heroku/brew && brew install heroku
 heroku login # follow prompts to login or sign up
-TBD...
+make deploy
 ```
 
 # Primary Components
@@ -28,21 +28,20 @@ TBD...
         * Flexbox
         * Bootstrap
         * ERB
-        * Turbolinks
-        * StimulusReflex
+        * Turbo
     * Backend
         * Ruby on Rails
         * Highlighted gems
-            * Stimulus Reflex
-            * Devise
-            * Pundit
-            * Sidekiq
+            * Hotware
+            * Devise (coming soon)
+            * Pundit (coming soon)
+            * Sidekiq (coming soon)
         * Postgres
         * Redis
-    * Deployment (Coming soon)
+    * Deployment
         * Heroku
-        * AWS
-        * Azure
+        * AWS  (coming soon)
+        * Azure  (coming soon)
     * Devtools/Miscelleanous
         * Docker & Docker Compose
         * Minitest

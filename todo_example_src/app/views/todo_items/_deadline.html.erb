@@ -1,4 +1,6 @@
-<span id="deadline">
-    Deadline: <%= todo_list.deadline.to_s(:long) %>
-    <%= link_to "Postpone", "#", class: 'btn btn-primary', data: { reflex: 'click->Todo#postpone' } %>
-</span>
+<div>
+    Deadline: <%= todo_list.deadline.getlocal.to_s(:long) %>
+</div>
+<%= form_for(todo_list, url: postpone_todo_list_path(todo_list), method: :patch) do |f| %>
+    <%= f.submit 'Postpone', class: 'btn btn-primary input-group-btn mt-1', id: 'todo-list-postpone' %>
+<% end %>

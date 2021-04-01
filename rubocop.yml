@@ -11,12 +11,13 @@
 
 AllCops:
   Exclude:
-    - '.git/**/*'
-    - 'db/**/*'
-    - 'config/**/*'
-    - 'script/**/*'
-    - 'vendor/**/*'
-    - 'bin/**/*'
+    - ".git/**/*"
+    - "db/**/*"
+    - "config/**/*"
+    - "script/**/*"
+    - "vendor/**/*"
+    - "bin/**/*"
+  NewCops: enable
 
 Layout/EmptyLinesAroundAttributeAccessor:
   Enabled: true
@@ -45,7 +46,7 @@ Lint/RedundantCopDisableDirective:
 Lint/StructNewOverride:
   Enabled: true
 
-Metrics/AbcSize: 
+Metrics/AbcSize:
   Max: 25
 
 Metrics/BlockLength:
@@ -69,12 +70,15 @@ Style/Documentation:
 Style/ExponentialNotation:
   Enabled: true
 
+Style/FrozenStringLiteralComment:
+  Enabled: false # TODO: check out this experiment
+
 Style/HashEachMethods:
   Enabled: true
 
 Style/HashTransformKeys:
   Enabled: true
- 
+
 Style/HashTransformValues:
   Enabled: true
 
@@ -89,7 +93,7 @@ Style/RedundantReturn:
 
 Style/RegexpLiteral:
   EnforcedStyle: mixed
- 
+
 Style/SlicingWithRange:
   Enabled: true
 

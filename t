@@ -1,0 +1,12 @@
+gem uninstall actioncable -v 6.1.0
+gem uninstall actionmailbox -v 6.1.0
+gem uninstall actionmailer -v 6.1.0
+gem uninstall actionpack -v 6.1.0
+gem uninstall actiontext -v 6.1.0
+gem uninstall actionview -v 6.1.0
+gem uninstall activejob -v 6.1.0
+gem uninstall activemodel -v 6.1.0
+gem uninstall activerecord -v 6.1.0
+gem uninstall activestorage -v 6.1.0
+gem uninstall activesupport -v 6.1.0
+gem uninstall railties -v 6.1.0

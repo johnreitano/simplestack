@@ -8,10 +8,20 @@ ifeq ($(filter $(ENV),$(ENVS)),)
 endif
 
 DOCKER_COMPOSE=docker-compose -p auto-api
+MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+_PARENT_DIR_WITH_SLASH := $(dir $(MAKEFILE_PATH))
+SIMPLE_STACK_PATH := $(patsubst %/,%,$(_PARENT_DIR_WITH_SLASH))
+APP_NAME=$(firstword $(SIMPLE_STACK_ARGS))
 
 DEFAULT_GOAL := help
 help:
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsasge for making auto-api targets:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-27s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+new: ## create a new simplestack app based on rails, hotwire, postgres and heroku 
+	@echo "Creating application $(lastword $(SIMPLE_STACK_ARGS)) from SimpleStack template..."
+	rails new --skip-spring --skip-sprockets --database=postgresql -m $(SIMPLE_STACK_PATH)/template.rb $(SIMPLE_STACK_ARGS)
+	cd $(APP_NAME) && $(SIMPLE_STACK_PATH)/create-github-repo.sh
+	@echo -n "\nCongratulations, your SimpleStack app is ready!\n\nStart your server by running \"cd $(APP_NAME); rails server\" and then visit http://localhost:3000"
 
 setup: ## setup all containers from scratch (destroys existing containers and db)
 	if [[ ! -e .env ]]; then echo "Error: missing .env file!"; exit 1; fi
@@ -68,31 +78,22 @@ bash: ## get a bash shell on the main api container (optionally run a command in
 	fi
 
 attach: ## attach to website container in order to use byebug console (press ctrl-p ctrl-q to quit)
-	echo "Attaching to website container. Press CTRL-p CTRL-q to quit..."
+	@echo "Attaching to website container. Press CTRL-p CTRL-q to quit..."
 	docker container attach auto-api_website_1
 
 attach-worker: ## attach to worker container in order to use byebug console
-	echo "Attaching to worker container. Press CTRL-p CTRL-q to quit..."
+	@echo "Attaching to worker container. Press CTRL-p CTRL-q to quit..."
 	docker container attach auto-api_worker_1
 
-deploy: ## deploy to ENV (development, personal, staging, or production)
+deploy: ## deploy to RAILS_ENV (only production for now)
 	$(call check_defined, RAILS_ENV)
-	echo "do a buncha stuff here to deploy to $(RAILS_ENV) environment..."	
-
-db-tunnel-staging: ## run the console against the staging database using an ssh tunnel
-	$(call check_defined, DB_USERNAME)
-	$(call check_defined, DB_PASSWORD)
-	pkill -6 -f "ssh -i" || :
-	ssh -i ~/.ssh/id_rsa -N -L 3308:autoapidbstack-autoapidbclustere843232a-rf800phvleg4.cluster-cx3f68ulrzy7.us-west-2.rds.amazonaws.com:3306 ec2-user@ec2-54-191-235-227.us-west-2.compute.amazonaws.com &
-	# mysql -h 127.0.0.1 -P 3308 -u saltyroot -D saltyauto_staging -p
-	$(DOCKER_COMPOSE) run --no-deps -e DB_USERNAME -e DB_PASSWORD -e DB_HOST=docker.for.mac.localhost -e DB_PORT=3308 -e DB_NAME=saltyauto_staging -e RAILS_ENV=staging website bash
-
-db-tunnel-production: ## run the console against the production database using an ssh tunnel
-	$(call check_defined, DB_USERNAME)
-	$(call check_defined, DB_PASSWORD)
-	pkill -6 -f "ssh -i" || :
-	ssh -i ~/.ssh/id_rsa -N -L 3308:autoapidbstack-autoapidbclustere843232a-bsgyhn6zwb53.cluster-cxq64vquwt8f.us-west-2.rds.amazonaws.com:3306 ec2-user@ec2-18-236-91-178.us-west-2.compute.amazonaws.com &
-	$(DOCKER_COMPOSE) run --no-deps -e DB_USERNAME -e DB_PASSWORD -e DB_HOST=docker.for.mac.localhost -e DB_PORT=3308 -e DB_NAME=saltyauto_production -e RAILS_ENV=production website bash
+	@echo "Deploying to $(RAILS_ENV) environment..."	
+	heroku create
+	heroku_app_name=`git remote -v | grep heroku | head -1 | cut -f4 -d\/ | cut -f1 -d\.`
+	heroku addons:create heroku-redis:hobby-dev --app=#{heroku_app_name}
+	heroku addons:wait --app=#{heroku_app_name}
+	git push heroku master
+	@echo NOTE: To destroy this app, run: heroku apps:destroy --app=#{heroku_app_name}
 
 # function used above
 check_defined = \

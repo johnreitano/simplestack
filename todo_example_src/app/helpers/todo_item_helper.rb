@@ -8,20 +8,10 @@ module TodoItemHelper
   end
 
   def list_size
-    TodoItem.count
+    TodoList.first_or_create.todo_items.count
   end
 
   def list_completed_count
-    TodoItem.completed.count
-  end
-
-  def list_completion_status
-    if list_completion_percent == 0
-      'Not started'
-    elsif list_completion_percent == 100
-      'All Done'
-    else
-      'In Progress'
-    end
+    TodoList.first_or_create.todo_items.completed.count
   end
 end
