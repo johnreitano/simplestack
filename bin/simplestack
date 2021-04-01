@@ -16,8 +16,8 @@ APP_NAME=${SIMPLE_STACK_ARGS%% *}
 SIMPLE_STACK_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && cd .. && pwd )"
 
 echo "Creating application ${APP_NAME} from SimpleStack template..."
-# docker build -f ${SIMPLE_STACK_PATH}/Dockerfile.rails -t simplestack/rails .
-# docker run -it -v "$(PWD):/app" -v "${SIMPLE_STACK_PATH}:/simplestack" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m /simplestack/template.rb ${SIMPLE_STACK_ARGS}
+docker build -f ${SIMPLE_STACK_PATH}/Dockerfile.rails -t simplestack/rails .
+docker run -it -v "$(PWD):/app" -v "${SIMPLE_STACK_PATH}:/simplestack" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m /simplestack/template.rb ${SIMPLE_STACK_ARGS}
 
 cd ${APP_NAME}
 echo "Creating initial commit..."
@@ -30,4 +30,4 @@ fi
 git add .
 git commit -m 'Initial commit'
 
-echo -n "Your SimpleStack app has been generated"
+echo -n "Your SimpleStack app ${APP_NAME} has been generated"

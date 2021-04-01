@@ -1,0 +1,15 @@
+<%= form_for(todo_item) do |f| %>
+    <% if todo_item.errors.any? %>
+        <div id="error_explanation">
+            Error: <%= todo_item.errors.full_messages.join('; ') %>
+        </div>
+    <% end %>
+    <div class="input-group mb-4 d-block">
+        <div class="d-flex">
+                <%= f.text_field :description, class: 'form-control', placeholder: 'Enter a new todo', id: 'add-todo-item-description' %>
+            <div class="input-group-append">
+                <%= f.submit 'Add', class: 'btn btn-primary input-group-btn', id: 'add-todo-item-submit' %>            
+            </div>
+        </div>
+    </div>
+<% end %>

@@ -1,0 +1,34 @@
+<div class="card-header d-flex justify-content-between">
+  <div class="row w-100">
+    <div class="col-10 d-flex justify-content-between">
+      <div>
+        <h3 class="m-0 mt-2 mb-3">
+          My Todos
+        </h3>
+        <p class="text-secondary m-0">
+          <div id="deadline-wrapper">
+              <%= turbo_stream_from 'todo_items_deadline' %>
+              <%= turbo_frame_tag 'todo_items_deadline' do %>
+                <%= render partial: 'todo_items/deadline', locals: { todo_list: @todo_list } %>
+              <% end %>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="card-body">
+  <div class="progress mb-4">
+    <div class="progress-bar bg-info" role="progressbar" style="width: <%= list_completion_percent %>%" aria-valuenow="<%= list_completion_percent %>" aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+  <%= turbo_frame_tag 'todo_item_form', target: '_top' do %>
+    <%= render 'todo_items/form', todo_item: @todo_item %>
+  <% end %>
+
+  <%= turbo_stream_from 'todo_items' %>
+  <%= turbo_frame_tag 'todo_items' do %>
+    <ul class="list-group">
+      <%= render @todo_items %>
+    </ul>
+  <% end %>
+</div>

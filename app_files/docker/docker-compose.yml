@@ -1,0 +1,42 @@
+version: "3.8"
+
+x-common-app-items: &common-app-items
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+  depends_on:
+    - "database"
+  volumes:
+    - type: bind
+      source: ..
+      target: /home/app/core
+  env_file: ../.env # one config to rule them all -- see .env.example for required variables
+  stdin_open: true # needed to attach to container to debug in developent environment
+  tty: true # needed to attach to container to debug in developent environment
+
+services:
+  database:
+    image: "postgres"
+    restart: always
+    environment:
+      MYSQL_DATABASE: "simplestack_development"
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: root
+    ports: # TODO: can this be left commented?
+      - "3307:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  website:
+    <<: *common-app-items
+    ports:
+      - "3000:3000"
+
+  worker:
+    <<: *common-app-items
+    command: "docker/worker-startup.sh"
+
+volumes:
+  mysql-data:

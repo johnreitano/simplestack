@@ -1,0 +1,17 @@
+<%= turbo_frame_tag dom_id(todo_item) do %>
+    <li class="list-group-item <%= 'bg-light' if todo_item.completed? %>%">
+        <div class="d-flex justify-content-between">
+            <span>
+                <em><%= todo_item.description %></em>
+            </span>
+            <span>
+                <%= link_to toggle_complete_todo_item_path(todo_item), method: :patch, class: 'btn btn-info btn-sm' do %>
+                    <i class="fas <%= todo_item.completed? ? 'fa-check-square' : 'fa-square' %>"></i>
+                <% end %>
+                <%= link_to todo_item_path(todo_item), method: :delete, class: 'btn btn-info btn-sm' do %>
+                    <i class="fas fa-trash"></i>
+                <% end %>
+            </span>
+        </div>
+    </li>
+<% end %>
