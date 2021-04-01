@@ -9,9 +9,25 @@ if [[ $1 = "" || ($1 = "new" && $2 = "") ]]; then
     exit 1
 fi
 
-export SIMPLE_STACK_COMMAND=$1
+SIMPLE_STACK_COMMAND=$1
 shift
-export SIMPLE_STACK_ARGS=$@
-export SIMPLE_STACK_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && cd .. && pwd )"
+SIMPLE_STACK_ARGS=$@
+APP_NAME=${SIMPLE_STACK_ARGS%% *}
+SIMPLE_STACK_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && cd .. && pwd )"
 
-make -f ${SIMPLE_STACK_PATH}/Makefile ${SIMPLE_STACK_COMMAND} SIMPLE_STACK_ARGS="${SIMPLE_STACK_ARGS}"
+echo "Creating application ${APP_NAME} from SimpleStack template..."
+# docker build -f ${SIMPLE_STACK_PATH}/Dockerfile.rails -t simplestack/rails .
+# docker run -it -v "$(PWD):/app" -v "${SIMPLE_STACK_PATH}:/simplestack" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m /simplestack/template.rb ${SIMPLE_STACK_ARGS}
+
+cd ${APP_NAME}
+echo "Creating initial commit..."
+if ! grep "^ruby$" .gitignore; then 
+    echo "ruby" >> .gitignore
+fi
+if ! grep "^vendor$" .gitignore; then 
+    echo "vendor" >> .gitignore
+fi
+git add .
+git commit -m 'Initial commit'
+
+echo -n "Your SimpleStack app has been generated"

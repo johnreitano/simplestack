@@ -30,7 +30,7 @@ def install_hotwire_and_redis
   gem "redis", ">= 4.0", :require => ["redis", "redis/connection/hiredis"]
   gem 'hiredis'
   gem 'redis-session-store'
-  run 'bundle install --path=~/cache'
+  run 'bundle install'
 end
 
 def add_home_page
@@ -50,10 +50,15 @@ def add_home_page
   DONE
 end
 
-def add_todo_example
-  say "Adding Todo example..."
+def copy_app_files
+  say "Copying app files..."
 
-  run "cp -R #{__dir__}/todo_example_src/* ./"
+  run "cp -R #{__dir__}/app_files/* ./"
+end
+
+def add_todo_routes
+  say "Adding Todo routes..."
+
   route <<-DONE
   
   resources :todo_lists, only: [] do\n
@@ -144,12 +149,6 @@ def update_application_layout
   DONE
 end
 
-def init_db
-  say "Initializing db..."
-
-  rails_command 'db:create db:migrate db:seed'
-end
-
 def install_node_packages
   say "Installing node packages..."
 
@@ -183,17 +182,6 @@ def configure_redis_cache
   environment code, env: 'production'
 end
 
-def copy_utility_files
-  say "Copying additional files..."
-
-  copy_file "#{__dir__}/rubocop.yml", '.rubocop.yml'
-  copy_file "#{__dir__}/Dockerfile", 'Dockerfile.yml'
-  copy_file "#{__dir__}/Makefile", 'Makefile'
-  copy_file "#{__dir__}/wait-for-mysql-server.sh", 'wait-for-mysql-server.sh'
-  copy_file "#{__dir__}/website-startup.sh", 'website-startup.sh'
-  copy_file "#{__dir__}/worker-startup.sh", 'worker-startup.sh'
-end
-
 def configure_sidekiq
   say "Configuring Sidekiq..."
 
@@ -206,20 +194,14 @@ def configure_sidekiq
   environment "config.active_job.queue_adapter = :sidekiq"
 end
 
-def create_initial_git_commit
-  append_to_file '.gitignore', "ruby\n" if File.readlines('.gitignore').grep(/^ruby$/).empty?
-  append_to_file '.gitignore', "vendor\n" if File.readlines('.gitignore').grep(/^vendor$/).empty?
-  git add: "."
-  git commit: "-a -m 'Initial commit'"
-end
-
 update_gems
-run 'bundle install --path=~/cache'
+run 'bundle install'
 after_bundle do
+  copy_app_files
   install_node_packages
   install_hotwire_and_redis
   add_home_page
-  add_todo_example
+  add_todo_routes
   update_javascript_resources
   add_scss_resources
   add_image_resources
@@ -227,7 +209,4 @@ after_bundle do
   # configure_action_cable
   configure_redis_cache
   configure_sidekiq
-  copy_utility_files  
-  init_db
-  create_initial_git_commit
 end
