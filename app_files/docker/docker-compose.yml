@@ -15,6 +15,13 @@ x-common-app-items: &common-app-items
   tty: true # needed to attach to container to debug in developent environment
 
 services:
+  redis:
+    image: redis:5.0.7
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/var/lib/redis/data
+
   database:
     image: postgres:13
     volumes:
@@ -35,3 +42,4 @@ services:
 
 volumes:
   postgres-data:
+  redis-data:

@@ -8,7 +8,7 @@ if [[ "$DB_RESET" = "true" && "$RAILS_ENV" = "production" ]]; then
     exit 1
 fi
 
-wait-for-it db:5432 -t 60
+wait-for-it database:5432 -t 60
 
 # bundle install
 # yarn install --check-files

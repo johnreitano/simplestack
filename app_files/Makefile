@@ -15,7 +15,7 @@ DOCKER_COMPOSE=docker-compose -p simplestack-$(APP_NAME) -f docker/docker-compos
 
 DEFAULT_GOAL := help
 help:
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsasge for making auto-api targets:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-27s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsasge for making simplestack targets:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-27s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 setup: ## setup all containers from scratch (destroys existing containers and db)
 	$(DOCKER_COMPOSE) down --remove-orphans
@@ -76,11 +76,11 @@ bash: ## get a bash shell on the main api container (optionally run a command in
 
 attach: ## attach to website container in order to use byebug console (press ctrl-p ctrl-q to quit)
 	@echo "Attaching to website container. Press CTRL-p CTRL-q to quit..."
-	docker container attach auto-api_website_1
+	docker container attach simplestack-$(APP_NAME)_website_1
 
 attach-worker: ## attach to worker container in order to use byebug console
 	@echo "Attaching to worker container. Press CTRL-p CTRL-q to quit..."
-	docker container attach auto-api_worker_1
+	docker container attach simplestack-$(APP_NAME)_worker_1
 
 deploy: ## deploy to RAILS_ENV (only production for now)
 	$(call check_defined, RAILS_ENV)
