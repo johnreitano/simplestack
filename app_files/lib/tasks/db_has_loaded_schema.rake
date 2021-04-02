@@ -5,7 +5,7 @@ namespace :db do
   task :has_loaded_schema do
     Rake::Task['environment'].invoke
     ActiveRecord::Base.connection
-  rescue StandardError
+  rescue StandardError => e    
     puts 'Database does not exist'
     exit 1
   else

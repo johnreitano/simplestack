@@ -9,8 +9,8 @@ Simple Stack is an opinionated app generator and full-stack framework for creati
     brew install simplestack
     simplestack new-project
     cd new-project
-    rails server -p
-    # then browse to http://localhost:3000
+    make setup
+    # then browse to http://localhost:4000
 ```
 
 ## Deploying to heroku
@@ -25,7 +25,6 @@ make deploy
 
     * Front end
         * HTML/CSS
-        * Flexbox
         * Bootstrap
         * ERB
         * Turbo

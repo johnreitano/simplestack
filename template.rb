@@ -54,6 +54,7 @@ def copy_app_files
   say "Copying app files..."
 
   run "cp -R #{__dir__}/app_files/* ./"
+  run "cp -R #{__dir__}/app_files/.env* ./"
 end
 
 def add_todo_routes

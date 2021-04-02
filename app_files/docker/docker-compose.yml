@@ -16,27 +16,22 @@ x-common-app-items: &common-app-items
 
 services:
   database:
-    image: "postgres"
-    restart: always
-    environment:
-      MYSQL_DATABASE: "simplestack_development"
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USERNAME: root
-      MYSQL_PASSWORD: root
-    ports: # TODO: can this be left commented?
-      - "3307:3306"
-    command: --default-authentication-plugin=mysql_native_password
+    image: postgres:13
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5433:5432
 
   website:
     <<: *common-app-items
     ports:
-      - "3000:3000"
+      - "4000:4000"
 
   worker:
     <<: *common-app-items
     command: "docker/worker-startup.sh"
 
 volumes:
-  mysql-data:
+  postgres-data:

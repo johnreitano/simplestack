@@ -20,7 +20,7 @@ help:
 setup: ## setup all containers from scratch (destroys existing containers and db)
 	$(DOCKER_COMPOSE) down --remove-orphans
 	$(DOCKER_COMPOSE) rm -fs
-	if [[ "$(nobuild)" != "true" ]]; then touch Gemfile.lock; DOCKER_BUILDKIT=0 $(DOCKER_COMPOSE) build --pull; fi
+	if [[ "$(nobuild)" != "true" ]]; then touch Gemfile.lock; $(DOCKER_COMPOSE) build --pull; fi
 	DB_RESET=true $(DOCKER_COMPOSE) up -d --force-recreate --remove-orphans # DANGER: destroys db!
 	@echo -n "\nCongratulations, your SimpleStack app is ready! To see it, visit http://localhost:4000"
 

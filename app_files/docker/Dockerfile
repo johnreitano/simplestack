@@ -44,7 +44,7 @@ WORKDIR $APP_HOME
 RUN if [ ! -e yarn.lock ]; then \
         yarn install && yarn upgrade; \
     fi; \
-    yarn install --check files
+    yarn install # --check files
 
 EXPOSE 4000
 

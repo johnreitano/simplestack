@@ -3,7 +3,6 @@
 set -e
 # set -x
 
-./config/docker/wait-for-mysql-server.sh
-
+wait-for-it db:5432 -t 60
 bundle exec rails jobs:work
 
