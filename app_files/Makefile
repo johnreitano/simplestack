@@ -11,6 +11,7 @@ MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 _PARENT_DIR_WITH_SLASH := $(dir $(MAKEFILE_PATH))
 SIMPLE_STACK_PATH := $(patsubst %/,%,$(_PARENT_DIR_WITH_SLASH))
 APP_NAME=$(shell basename $(PWD))
+HEROKU_APP_NAME=simplestack-$(shell basename $(PWD))
 DOCKER_COMPOSE=docker-compose -p simplestack-$(APP_NAME) -f docker/docker-compose.yml
 
 DEFAULT_GOAL := help
@@ -82,15 +83,16 @@ attach-worker: ## attach to worker container in order to use byebug console
 	@echo "Attaching to worker container. Press CTRL-p CTRL-q to quit..."
 	docker container attach simplestack-$(APP_NAME)_worker_1
 
-deploy: ## deploy to RAILS_ENV (only production for now)
-	$(call check_defined, RAILS_ENV)
-	@echo "Deploying to $(RAILS_ENV) environment..."	
-	heroku create
-	heroku_app_name=`git remote -v | grep heroku | head -1 | cut -f4 -d\/ | cut -f1 -d\.`
-	heroku addons:create heroku-redis:hobby-dev --app=#{heroku_app_name}
-	heroku addons:wait --app=#{heroku_app_name}
+deploy: ## deploy (only production for now)
+	@echo "Deploying to $(RAILS_ENV) environment..."
+	if ! heroku apps:info $(HEROKU_APP_NAME) 1>/dev/null 2>/dev/null; then \
+		heroku apps:create $(HEROKU_APP_NAME); \
+		heroku addons:create heroku-redis:hobby-dev --app=$(HEROKU_APP_NAME); \
+		heroku addons:wait --app=$(HEROKU_APP_NAME); \
+	fi
 	git push heroku master
-	@echo NOTE: To destroy this app, run: heroku apps:destroy --app=#{heroku_app_name}
+	heroku run rake db:migrate
+	@echo NOTE: To destroy this app, run: heroku apps:destroy --app=$(HEROKU_APP_NAME)
 
 # function used above
 check_defined = \

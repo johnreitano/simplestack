@@ -18,7 +18,7 @@ if [[ "$DB_RESET" = "true" ]] || ! bundle exec rails db:has_loaded_schema; then
     if [[ -f db/schema.rb ]]; then
         bundle exec rails db:schema:load
     fi
-    rails db:migrate db:seed
+    bundle exec rails db:migrate db:seed
 else
     bundle exec rails db:migrate
 fi

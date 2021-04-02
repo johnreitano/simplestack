@@ -55,6 +55,12 @@ def copy_app_files
 
   run "cp -R #{__dir__}/app_files/* ./"
   run "cp -R #{__dir__}/app_files/.env* ./"
+  gsub_file '.env', /foo_development/, "#{app_name}_development" 
+  gsub_file '.env.example', /foo_development/, "#{app_name}_development" 
+end
+
+def app_name
+  File.basename(Dir.getwd).underscore
 end
 
 def add_todo_routes
@@ -156,12 +162,11 @@ def install_node_packages
   run 'yarn add bootstrap jquery popper.js @fortawesome/fontawesome-free' # TODO: move font-awesome to example step
 end
 
-# def configure_action_cable
-#   say "Configuring action cable..."
+def configure_action_cable
+  say "Configuring action cable..."
 
-#   # TODO: check if this is still necessary
-#   gsub_file 'config/cable.yml', /development:\n *adapter: async/, "development:\n  adapter: <%= ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' } %>"
-# end
+  gsub_file 'config/cable.yml', /development:\n *adapter: async/, %(development:\n  adapter: redis\n  url: \<\%\= ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } \%\>)
+end
 
 def configure_redis_cache
   say "Configuring Redis cache store and session store..."
@@ -195,6 +200,7 @@ def configure_sidekiq
   environment "config.active_job.queue_adapter = :sidekiq"
 end
 
+configure_action_cable
 update_gems
 run 'bundle install'
 after_bundle do
@@ -207,7 +213,7 @@ after_bundle do
   add_scss_resources
   add_image_resources
   update_application_layout
-  # configure_action_cable
+  configure_action_cable
   configure_redis_cache
   configure_sidekiq
 end
