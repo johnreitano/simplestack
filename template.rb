@@ -200,6 +200,13 @@ def configure_sidekiq
   environment "config.active_job.queue_adapter = :sidekiq"
 end
 
+def create_initial_git_commit
+  append_to_file '.gitignore', "ruby\n" if File.readlines('.gitignore').grep(/^ruby$/).empty?
+  append_to_file '.gitignore', "vendor\n" if File.readlines('.gitignore').grep(/^vendor$/).empty?
+  git add: "."
+  git commit: "-a -m 'Initial commit'"
+end
+
 configure_action_cable
 update_gems
 run 'bundle install'
@@ -216,4 +223,5 @@ after_bundle do
   configure_action_cable
   configure_redis_cache
   configure_sidekiq
+  create_initial_git_commit
 end

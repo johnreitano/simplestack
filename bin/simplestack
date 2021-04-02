@@ -13,20 +13,13 @@ SIMPLE_STACK_COMMAND=$1
 shift
 SIMPLE_STACK_ARGS=$@
 APP_NAME=${SIMPLE_STACK_ARGS%% *}
-SOURCE_ABS_PATH=$(greadlink -f ${BASH_SOURCE[0]})
-SIMPLE_STACK_PATH=$(cd "$(dirname "${SOURCE_ABS_PATH}")" && cd .. && pwd)
-MOUNTABLE_SIMPLE_STACK_PATH=$(cp -R ${SIMPLE_STACK_PATH} .simplestack-copy && cd .simplestack-copy && pwd)
+SIMPLE_STACK_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)
 
 echo "Creating application ${APP_NAME} from SimpleStack template..."
 docker build -f ${SIMPLE_STACK_PATH}/Dockerfile.rails -t simplestack/rails .
-docker run -it -v "$(PWD):/app" -v "${MOUNTABLE_SIMPLE_STACK_PATH}:/simplestack" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m /simplestack/template.rb ${SIMPLE_STACK_ARGS}
+yes | cp ${SIMPLE_STACK_PATH}/template.rb .simplestack-template.rb
+docker run -it -v "$(PWD):/app" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m .simplestack-template.rb ${SIMPLE_STACK_ARGS}
+rm .simplestack-template.rb
 
 cd ${APP_NAME}
-
-echo "Creating initial commit..."
-echo "ruby" >> .gitignore
-echo "vendor" >> .gitignore
-git add .
-git commit -m 'Initial commit'
-
-echo "Your SimpleStack app ${APP_NAME} has been generated"
+make setup
