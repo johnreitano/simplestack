@@ -15,10 +15,11 @@ SIMPLE_STACK_ARGS=$@
 APP_NAME=${SIMPLE_STACK_ARGS%% *}
 SOURCE_ABS_PATH=$(greadlink -f ${BASH_SOURCE[0]})
 SIMPLE_STACK_PATH=$(cd "$(dirname "${SOURCE_ABS_PATH}")" && cd .. && pwd)
+MOUNTABLE_SIMPLE_STACK_PATH=$(cp -R ${SIMPLE_STACK_PATH} .simplestack-copy && cd .simplestack-copy && pwd)
 
 echo "Creating application ${APP_NAME} from SimpleStack template..."
 docker build -f ${SIMPLE_STACK_PATH}/Dockerfile.rails -t simplestack/rails .
-docker run -it -v "$(PWD):/app" -v "${SIMPLE_STACK_PATH}:/simplestack" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m /simplestack/template.rb ${SIMPLE_STACK_ARGS}
+docker run -it -v "$(PWD):/app" -v "${MOUNTABLE_SIMPLE_STACK_PATH}:/simplestack" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m /simplestack/template.rb ${SIMPLE_STACK_ARGS}
 
 cd ${APP_NAME}
 
