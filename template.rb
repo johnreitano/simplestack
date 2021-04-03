@@ -53,14 +53,10 @@ end
 def copy_app_files
   say "Copying app files..."
 
-  run "cp -R #{__dir__}/app_files/* ./"
-  run "cp -R #{__dir__}/app_files/.env* ./"
-  gsub_file '.env', /foo_development/, "#{app_name}_development" 
+  run "cp -R ../.simplestack-files/app_files/* ../.simplestack-files/app_files/.env.example ./"
+  app_name = File.basename(Dir.getwd).underscore
   gsub_file '.env.example', /foo_development/, "#{app_name}_development" 
-end
-
-def app_name
-  File.basename(Dir.getwd).underscore
+  run "cp .env.example .env"
 end
 
 def add_todo_routes
@@ -201,17 +197,15 @@ def configure_sidekiq
 end
 
 def create_initial_git_commit
-  append_to_file '.gitignore', "ruby\n" if File.readlines('.gitignore').grep(/^ruby$/).empty?
-  append_to_file '.gitignore', "vendor\n" if File.readlines('.gitignore').grep(/^vendor$/).empty?
+  append_to_file '.gitignore', "ruby\nvendor\n.env\n"
   git add: "."
   git commit: "-a -m 'Initial commit'"
 end
 
-configure_action_cable
+copy_app_files
 update_gems
 run 'bundle install'
 after_bundle do
-  copy_app_files
   install_node_packages
   install_hotwire_and_redis
   add_home_page

@@ -1,25 +1,27 @@
 #!/usr/bin/env bash
 
 set -e
-# set -x
+set -x
 
-if [[ $1 = "" || ($1 = "new" && $2 = "") ]]; then
+if [[ $1 = "" ]]; then
     echo "Usage: simplestack new <app_name>"
-    echo "   or: simplestack <make-target> # see app_files/Makefile"
     exit 1
 fi
 
-SIMPLE_STACK_COMMAND=$1
-shift
 SIMPLE_STACK_ARGS=$@
 APP_NAME=${SIMPLE_STACK_ARGS%% *}
-SIMPLE_STACK_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && cd .. && pwd)
+SOURCE=$(greadlink -f ${BASH_SOURCE[0]})
+SIMPLE_STACK_PATH=$(cd "$(dirname "${SOURCE}")" && cd .. && pwd)
 
 echo "Creating application ${APP_NAME} from SimpleStack template..."
+rm -rf .simplestack-files/*
+mkdir -p .simplestack-files
+cp -R ${SIMPLE_STACK_PATH}/template.rb ${SIMPLE_STACK_PATH}/app_files .simplestack-files/
+
 docker build -f ${SIMPLE_STACK_PATH}/Dockerfile.rails -t simplestack/rails .
-yes | cp ${SIMPLE_STACK_PATH}/template.rb .simplestack-template.rb
-docker run -it -v "$(PWD):/app" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m .simplestack-template.rb ${SIMPLE_STACK_ARGS}
-rm .simplestack-template.rb
+docker run -it -v "$(PWD):/app" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m .simplestack-files/template.rb ${SIMPLE_STACK_ARGS}
+
+rm -rf .simplestack-files
 
 cd ${APP_NAME}
 make setup
