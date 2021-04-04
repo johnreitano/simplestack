@@ -5,10 +5,11 @@ Simple Stack is an opinionated app generator and full-stack framework for creati
 ## Local development
 
 ```
-    brew tap johnreitano/simplestack
-    brew install simplestack
-    simplestack hello_world
-    # then browse to http://localhost:4000
+brew tap johnreitano/simplestack
+brew install simplestack
+simplestack hello_world
+cd hello_world # take a look at the generated code
+# then browse to http://localhost:4000
 ```
 
 ## Deploying to heroku
