@@ -28,11 +28,13 @@ rm -rf .simplestack_app_files
 cd ${APP_NAME}
 make setup
 
-# wait 30s for schema file to be generated
-wait_seconds=30
+# wait up to 60s for schema file to be generated
+wait_seconds=60s
 until test $((wait_seconds--)) -eq 0 -o -e "db/schema.rb"; do
     sleep 1
 done
 
 git add .
 git commit -m 'Initial commit'
+
+@echo -n "\nCongratulations, your SimpleStack app ${APP_NAME} is ready! To see it, visit http://localhost:4000"
