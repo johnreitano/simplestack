@@ -7,17 +7,13 @@ Simple Stack is an opinionated app generator and full-stack framework for creati
 ```
     brew tap johnreitano/simplestack
     brew install simplestack
-    simplestack new-project
-    cd new-project
-    make setup
+    simplestack hello_world
     # then browse to http://localhost:4000
 ```
 
 ## Deploying to heroku
 
 ```
-brew tap heroku/brew && brew install heroku
-heroku login # follow prompts to login or sign up
 make deploy
 ```
 
@@ -31,7 +27,7 @@ make deploy
     * Backend
         * Ruby on Rails
         * Highlighted gems
-            * Hotware
+            * Hotwire
             * Devise (coming soon)
             * Pundit (coming soon)
             * Sidekiq (coming soon)
