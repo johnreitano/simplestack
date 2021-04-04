@@ -9,7 +9,7 @@ endif
 
 MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 _PARENT_DIR_WITH_SLASH := $(dir $(MAKEFILE_PATH))
-SIMPLE_STACK_PATH := $(patsubst %/,%,$(_PARENT_DIR_WITH_SLASH))
+SIMPLESTACK_PATH := $(patsubst %/,%,$(_PARENT_DIR_WITH_SLASH))
 APP_NAME=$(shell basename $(PWD))
 HEROKU_APP_NAME=simplestack-$(shell basename $(PWD))
 DOCKER_COMPOSE=docker-compose -p simplestack-$(APP_NAME) -f docker/docker-compose.yml
@@ -26,7 +26,7 @@ setup: ## setup all containers from scratch (destroys existing containers and db
 	@echo -n "\nCongratulations, your SimpleStack app is ready! To see it, visit http://localhost:4000"
 
 create-github-repo:
-	$(SIMPLE_STACK_PATH)/create-github-repo.sh
+	$(SIMPLESTACK_PATH)/create-github-repo.sh
 
 up: ## start up all containers
 	$(DOCKER_COMPOSE) up -d --force-recreate --remove-orphans

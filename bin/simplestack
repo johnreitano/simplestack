@@ -8,20 +8,31 @@ if [[ $1 = "" ]]; then
     exit 1
 fi
 
-SIMPLE_STACK_ARGS=$@
-APP_NAME=${SIMPLE_STACK_ARGS%% *}
+SIMPLESTACK_ARGS=$@
+APP_NAME=${SIMPLESTACK_ARGS%% *}
 SOURCE=$(greadlink -f ${BASH_SOURCE[0]})
-SIMPLE_STACK_PATH=$(cd "$(dirname "${SOURCE}")" && cd .. && pwd)
+SIMPLESTACK_PATH=$(cd "$(dirname "${SOURCE}")" && cd .. && pwd)
 
 echo "Creating application ${APP_NAME} from SimpleStack template..."
-rm -rf .simplestack-files/*
-mkdir -p .simplestack-files
-cp -R ${SIMPLE_STACK_PATH}/template.rb ${SIMPLE_STACK_PATH}/app_files .simplestack-files/
+rm -rf .simplestack_app_files
+cp -R ${SIMPLESTACK_PATH}/app_files .simplestack_app_files
 
-docker build -f ${SIMPLE_STACK_PATH}/Dockerfile.rails -t simplestack/rails .
-docker run -it -v "$(PWD):/app" simplestack/rails rails new --skip-spring --skip-sprockets --database=postgresql -m .simplestack-files/template.rb ${SIMPLE_STACK_ARGS}
-
-rm -rf .simplestack-files
+docker build -f ${SIMPLESTACK_PATH}/Dockerfile.rails -t simplestack/rails .
+docker run \
+    -it \
+    -v "$(PWD):/app" \
+    simplestack/rails \
+    rails new --skip-spring --skip-sprockets --database=postgresql -m .simplestack_app_files/template.rb ${SIMPLESTACK_ARGS}
+rm -rf .simplestack_app_files
 
 cd ${APP_NAME}
 make setup
+
+# wait 30s for schema file to be generated
+wait_seconds=30
+until test $((wait_seconds--)) -eq 0 -o -e "db/schema.rb"; do
+    sleep 1
+done
+
+git add .
+git commit -m 'Initial commit'

@@ -53,7 +53,7 @@ end
 def copy_app_files
   say "Copying app files..."
 
-  run "cp -R ../.simplestack-files/app_files/* ../.simplestack-files/app_files/.env.example ./"
+  run "cp -R ../.simplestack_app_files/* ../.simplestack_app_files/.env.example ./"
   app_name = File.basename(Dir.getwd).underscore
   gsub_file '.env.example', /foo_development/, "#{app_name}_development" 
   run "cp .env.example .env"
@@ -161,7 +161,13 @@ end
 def configure_action_cable
   say "Configuring action cable..."
 
-  gsub_file 'config/cable.yml', /development:\n *adapter: async/, %(development:\n  adapter: redis\n  url: \<\%\= ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } \%\>)
+  gsub_file 'config/cable.yml',
+    %r(url: redis://localhost:6379/1\n), 
+    %(url: \<\%\= ENV.fetch\("REDIS_URL"\) \%\>\n)
+
+    gsub_file 'config/cable.yml',
+      %r( { "redis://localhost:6379/1" }),
+      ''
 end
 
 def configure_redis_cache
@@ -196,10 +202,8 @@ def configure_sidekiq
   environment "config.active_job.queue_adapter = :sidekiq"
 end
 
-def create_initial_git_commit
+def update_git_ignore
   append_to_file '.gitignore', "ruby\nvendor\n.env\n"
-  git add: "."
-  git commit: "-a -m 'Initial commit'"
 end
 
 copy_app_files
@@ -217,5 +221,5 @@ after_bundle do
   configure_action_cable
   configure_redis_cache
   configure_sidekiq
-  create_initial_git_commit
+  update_git_ignore
 end
