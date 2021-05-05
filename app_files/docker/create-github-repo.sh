@@ -4,7 +4,7 @@ set -e
 # set -x
 
 answered_yes() {
-    echo -n "\n$1 [Yes] "
+    echo -e "\n$1 [Yes] "
     read answer
     case $answer in
         [Nn]* ) return 1;;
@@ -19,7 +19,7 @@ fi
 
 APP_NAME=${PWD##*/}
 
-echo -n "\nGithub repo name? [$APP_NAME] "
+echo -e "\nGithub repo name? [$APP_NAME] "
 read REPO_NAME
 if [[ -z "${REPO_NAME// }" ]]; then
     REPO_NAME=$APP_NAME

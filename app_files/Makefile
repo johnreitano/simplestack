@@ -25,7 +25,7 @@ setup: ## setup all containers from scratch (destroys existing containers and db
 	DB_RESET=true $(DOCKER_COMPOSE) up -d --force-recreate --remove-orphans # DANGER: destroys db!
 
 create-github-repo:
-	$(SIMPLESTACK_PATH)/create-github-repo.sh
+	./docker/create-github-repo.sh
 
 up: ## start up all containers
 	$(DOCKER_COMPOSE) up -d --force-recreate --remove-orphans
